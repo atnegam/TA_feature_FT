@@ -24,6 +24,7 @@ class FeatureFT(object):
         self.model = model.to(device)
         self.epsilon = epsilon
         self.k = k
+        self.kt = kt
         self.alpha = alpha
         self.prob = prob          # for normal model, drop 0.3; for defense models, drop 0.1
         self.mask_num = mask_num  # according to paper 30
