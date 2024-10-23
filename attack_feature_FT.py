@@ -38,7 +38,7 @@ class FeatureFT(object):
     y_ori: the original label (of X_nat)
     '''
     def perturb(self, X_nat, X_adv, y_tar, y_ori):
-        self.alpha = self.epsilon / 16.
+        # self.alpha = self.epsilon / 16.
         # get grads
         labels_tar = y_tar.clone().detach().to(self.device)
         labels_ori = y_ori.clone().detach().to(self.device)
@@ -81,7 +81,7 @@ class FeatureFT(object):
 
         g = 0
         x_cle = X_nat.detach()
-        x_adv_ft = X_adv.clone().requires_grad_()
+        x_adv_ft = X_nat.clone().requires_grad_()
         for epoch in range(self.k):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
@@ -96,21 +96,21 @@ class FeatureFT(object):
 
             loss.backward()
             grad_c = x_adv_ft.grad
-            grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
+            # grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
             g = self.mu * g + grad_c                                                                   # MI
 
-            x_adv_ft = x_adv_ft + self.alpha * g.sign()
+            x_adv_ft = x_adv_ft - self.alpha * g.sign()
             with torch.no_grad():
                 eta = torch.clamp(x_adv_ft - x_cle, min=-self.epsilon, max=self.epsilon)
                 # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
             x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
-
+            un_ae = x_adv_ft
 
     #get targeted AE
 
         g = 0
-        x_cle = X_nat.detach()
-        x_adv_ft = X_adv.clone().requires_grad_()
+        x_cle = un_ae.detach()
+        x_adv_ft = un_ae.clone().requires_grad_()
         for epoch in range(self.k):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
@@ -123,15 +123,15 @@ class FeatureFT(object):
             # loss = FIAloss(grad_sum_l3, mid_feature_l3)
             # loss = FIAloss(grad_sum_new_l4, mid_feature_l4)
             logitsT = logits.gather(1, labels_ori.unsqueeze(1)).squeeze(1)
-            logitsT.sum().backward()
+            logitsT = logitsT.sum()
             loss = -logitsT
             
             loss.backward()
             grad_c = x_adv_ft.grad
-            grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
+            # grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
             g = self.mu * g + grad_c                                                                   # MI
 
-            x_adv_ft = x_adv_ft + self.alpha * g.sign()
+            x_adv_ft = x_adv_ft - self.alpha * g.sign()
             with torch.no_grad():
                 eta = torch.clamp(x_adv_ft - x_cle, min=-self.epsilon, max=self.epsilon)
                 # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
