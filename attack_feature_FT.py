@@ -50,68 +50,68 @@ class FeatureFT(object):
         image_size = X_nat.shape[-1]
 
 
-    # # get untarget AE
+    # get untarget AE
 
-    #     # calculate the feature importance (to y_o) from the clean image
-    #     grad_sum_l1 = torch.zeros(temp_x_l1.shape).to(device)
-    #     grad_sum_l2 = torch.zeros(temp_x_l2.shape).to(device)
-    #     grad_sum_l3 = torch.zeros(temp_x_l3.shape).to(device)
-    #     grad_sum_l4 = torch.zeros(temp_x_l4.shape).to(device)
-    #     for i in range(self.mask_num):
-    #         self.model.zero_grad()
-    #         img_temp_i = norm(X_nat).clone()
-    #         # drop a few pixels randomly
-    #         mask = torch.tensor(np.random.binomial(1, self.prob, size=(batch_size, 3, image_size, image_size))).to(
-    #             device)
-    #         img_temp_i = img_temp_i * mask
-    #         logits, x_l1, x_l2, x_l3, x_l4 = self.model.features_grad_multi_layers(img_temp_i)
-    #         # gather logit_o
-    #         logit_label = logits.gather(1, labels_ori.unsqueeze(1)).squeeze(1)
-    #         logit_label.sum().backward()
-    #         # aggregate the gradient
-    #         grad_sum_l1 += x_l1.grad
-    #         grad_sum_l2 += x_l2.grad
-    #         grad_sum_l3 += x_l3.grad
-    #         grad_sum_l4 += x_l4.grad
+        # calculate the feature importance (to y_o) from the clean image
+        grad_sum_l1 = torch.zeros(temp_x_l1.shape).to(device)
+        grad_sum_l2 = torch.zeros(temp_x_l2.shape).to(device)
+        grad_sum_l3 = torch.zeros(temp_x_l3.shape).to(device)
+        grad_sum_l4 = torch.zeros(temp_x_l4.shape).to(device)
+        for i in range(self.mask_num):
+            self.model.zero_grad()
+            img_temp_i = norm(X_nat).clone()
+            # drop a few pixels randomly
+            mask = torch.tensor(np.random.binomial(1, self.prob, size=(batch_size, 3, image_size, image_size))).to(
+                device)
+            img_temp_i = img_temp_i * mask
+            logits, x_l1, x_l2, x_l3, x_l4 = self.model.features_grad_multi_layers(img_temp_i)
+            # gather logit_o
+            logit_label = logits.gather(1, labels_ori.unsqueeze(1)).squeeze(1)
+            logit_label.sum().backward()
+            # aggregate the gradient
+            grad_sum_l1 += x_l1.grad
+            grad_sum_l2 += x_l2.grad
+            grad_sum_l3 += x_l3.grad
+            grad_sum_l4 += x_l4.grad
 
-    #     # normalize the aggregated gradient. You can change it to average
-    #     grad_sum_l1 = grad_sum_l1 / grad_sum_l1.std()
-    #     grad_sum_l2 = grad_sum_l2 / grad_sum_l2.std()
-    #     grad_sum_l3 = grad_sum_l3 / grad_sum_l3.std()
-    #     grad_sum_l4 = grad_sum_l4 / grad_sum_l4.std()
-
-    #     g = 0
-    #     x_cle = X_nat.detach()
-    #     x_adv_ft = X_nat.clone().requires_grad_()
-    #     for epoch in range(self.k):
-    #         self.model.zero_grad()
-    #         x_adv_ft.requires_grad_()
-    #         # x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
-    #         x_adv_norm = norm(x_adv_ft)                                  # [0, 1] to [-1, 1]
-    #         mid_feature_l1, mid_feature_l2, mid_feature_l3, mid_feature_l4 = self.model.multi_layer_features(x_adv_norm)
-
-    #         # loss = FIAloss(grad_sum_new_l1, mid_feature_l1)
-    #         # loss = FIAloss(grad_sum_new_l2, mid_feature_l2)
-    #         loss = FIAloss(grad_sum_l3, mid_feature_l3)
-    #         # loss = FIAloss(grad_sum_new_l4, mid_feature_l4)
-
-    #         loss.backward()
-    #         grad_c = x_adv_ft.grad
-    #         # grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
-    #         g = self.mu * g + grad_c                                                                   # MI
-
-    #         x_adv_ft = x_adv_ft - self.alpha * g.sign()
-    #         with torch.no_grad():
-    #             eta = torch.clamp(x_adv_ft - x_cle, min=-self.epsilon, max=self.epsilon)
-    #             # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
-    #         x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
-    #         un_ae = x_adv_ft
-
-    #get targeted AE
+        # normalize the aggregated gradient. You can change it to average
+        grad_sum_l1 = grad_sum_l1 / grad_sum_l1.std()
+        grad_sum_l2 = grad_sum_l2 / grad_sum_l2.std()
+        grad_sum_l3 = grad_sum_l3 / grad_sum_l3.std()
+        grad_sum_l4 = grad_sum_l4 / grad_sum_l4.std()
 
         g = 0
         x_cle = X_nat.detach()
         x_adv_ft = X_nat.clone().requires_grad_()
+        for epoch in range(self.k):
+            self.model.zero_grad()
+            x_adv_ft.requires_grad_()
+            # x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
+            x_adv_norm = norm(x_adv_ft)                                  # [0, 1] to [-1, 1]
+            mid_feature_l1, mid_feature_l2, mid_feature_l3, mid_feature_l4 = self.model.multi_layer_features(x_adv_norm)
+
+            # loss = FIAloss(grad_sum_new_l1, mid_feature_l1)
+            # loss = FIAloss(grad_sum_new_l2, mid_feature_l2)
+            loss = FIAloss(grad_sum_l3, mid_feature_l3)
+            # loss = FIAloss(grad_sum_new_l4, mid_feature_l4)
+
+            loss.backward()
+            grad_c = x_adv_ft.grad
+            # grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
+            g = self.mu * g + grad_c                                                                   # MI
+
+            x_adv_ft = x_adv_ft - self.alpha * g.sign()
+            with torch.no_grad():
+                eta = torch.clamp(x_adv_ft - x_cle, min=-self.epsilon, max=self.epsilon)
+                # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
+            x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
+            un_ae = x_adv_ft
+
+    #get targeted AE
+
+        g = 0
+        x_cle = un_ae.detach()
+        x_adv_ft = un_ae.clone().requires_grad_()
         for epoch in range(self.kt):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
