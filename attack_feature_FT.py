@@ -123,7 +123,7 @@ class FeatureFT(object):
             # loss = FIAloss(grad_sum_new_l2, mid_feature_l2)
             # loss = FIAloss(grad_sum_l3, mid_feature_l3)
             # loss = FIAloss(grad_sum_new_l4, mid_feature_l4)
-            logitsT = logits.gather(1, labels_ori.unsqueeze(1)).squeeze(1)
+            logitsT = logits.gather(1, labels_tar.unsqueeze(1)).squeeze(1)
             logitsT = logitsT.sum()
             loss = -logitsT
             
