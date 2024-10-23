@@ -115,10 +115,10 @@ class FeatureFT(object):
         for epoch in range(self.kt):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
-            # x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
-            x_adv_norm = norm(x_adv_ft)                                  # [0, 1] to [-1, 1]
+            x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
+            x_adv_norm = norm(x_adv_ft_DI)                                  # [0, 1] to [-1, 1]
             # mid_feature_l1, mid_feature_l2, mid_feature_l3, mid_feature_l4 = self.model.multi_layer_features(x_adv_norm)
-            logits, _ = self.model._forward(x_adv_ft)
+            logits, _ = self.model._forward(x_adv_norm)
             # loss = FIAloss(grad_sum_new_l1, mid_feature_l1)
             # loss = FIAloss(grad_sum_new_l2, mid_feature_l2)
             # loss = FIAloss(grad_sum_l3, mid_feature_l3)
@@ -129,7 +129,7 @@ class FeatureFT(object):
             
             loss.backward()
             grad_c = x_adv_ft.grad
-            # grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
+            grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
             g = self.mu * g + grad_c                                                                   # MI
 
             x_adv_ft = x_adv_ft - self.alpha * g.sign()

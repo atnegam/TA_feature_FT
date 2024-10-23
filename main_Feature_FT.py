@@ -134,10 +134,12 @@ for k in range(0, 250):
     pos_ft[0] = pos_ft[0] + sum(predict_adv2 == labels_tar).cpu().numpy()
     neg_ori_ft[0] = neg_ori_ft[0] + sum(predict_adv2 == labels_ori).cpu().numpy()
 
+
     output = model_2(X_adv_norm)
     predict_adv2 = torch.argmax(output, dim=1)
     # print(output.gather(1, labels_tar.unsqueeze(1)).sum().data)
     pos_ft[1] = pos_ft[1] + sum(predict_adv2 == labels_tar).cpu().numpy()
+    neg_ori_ft[1] = neg_ori_ft[1] + sum(predict_adv2 == labels_ori).cpu().numpy()
 
     output = model_3(X_adv_norm)
     predict_adv2 = torch.argmax(output, dim=1)
