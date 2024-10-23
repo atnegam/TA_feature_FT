@@ -119,7 +119,7 @@ class FeatureFT(object):
             x_adv_norm = norm(x_adv_ft_DI)                                  # [0, 1] to [-1, 1]
             # mid_feature_l1, mid_feature_l2, mid_feature_l3, mid_feature_l4 = self.model.multi_layer_features(x_adv_norm)
             # logits, _ = self.model._forward(x_adv_norm)
-            logits, _ = self.model(x_adv_norm)
+            logits = self.model(x_adv_norm)
             # loss = FIAloss(grad_sum_new_l1, mid_feature_l1)
             # loss = FIAloss(grad_sum_new_l2, mid_feature_l2)
             # loss = FIAloss(grad_sum_l3, mid_feature_l3)
