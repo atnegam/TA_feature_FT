@@ -83,7 +83,7 @@ class FeatureFT(object):
         g1 = 0
         x_cle = X_nat.detach()
         x_adv_ft = X_nat.clone().requires_grad_()
-        for epoch in range(self.k / 2):
+        for epoch in range(self.k // 2):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
             x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
@@ -114,7 +114,7 @@ class FeatureFT(object):
         g2 = 0
         x_cle = un_ae.detach()
         x_adv_ft = un_ae.clone().requires_grad_()
-        for epoch in range(self.kt / 2):
+        for epoch in range(self.kt // 2):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
             x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
@@ -145,7 +145,7 @@ class FeatureFT(object):
         g3 = 0
         x_cle = x_adv_ft.detach()
         x_adv_ft = x_adv_ft.clone().requires_grad_()
-        for epoch in range(self.k / 2):
+        for epoch in range(self.k // 2):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
             x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
@@ -175,7 +175,7 @@ class FeatureFT(object):
         g4 = 0
         x_cle = un_ae.detach()
         x_adv_ft = un_ae.clone().requires_grad_()
-        for epoch in range(self.kt / 2):
+        for epoch in range(self.kt // 2):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
             x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
@@ -190,7 +190,7 @@ class FeatureFT(object):
             logitsT = logits.gather(1, labels_tar.unsqueeze(1)).squeeze(1)
             logitsT = logitsT.sum()
             loss = -logitsT
-            
+
             loss.backward()
             grad_c = x_adv_ft.grad
             grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
@@ -201,7 +201,6 @@ class FeatureFT(object):
                 eta = torch.clamp(x_adv_ft - x_cle, min=-self.epsilon, max=self.epsilon)
                 # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
             x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
-
 
         return x_adv_ft
 
