@@ -90,7 +90,7 @@ class FeatureFT(object):
         g = 0
         x_cle = X_adv.detach()
         x_adv_ft = X_adv.clone().requires_grad_()
-        for epoch in range(self.k1):
+        for epoch in range(k1):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
             x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
@@ -118,12 +118,12 @@ class FeatureFT(object):
         return x_adv_ft
 
 
-    def target_pb(self, X_adv, tar, ori, bs, ims):
+    def target_pb(self, X_adv, tar, ori, bs, ims, k2):
         
         g = 0
         x_cle = X_adv.detach()
         x_adv_ft = X_adv.clone().requires_grad_()
-        for epoch in range(self.kt):
+        for epoch in range(k2):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
             x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
