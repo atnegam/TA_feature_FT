@@ -18,7 +18,7 @@ gaussian_kernel = torch.from_numpy(gaussian_kernel).cuda()
 
 class FeatureFT(object):
     # imageNet
-    def __init__(self, model=None, device=None, epsilon=16 / 255., k=1, kt=20, alpha=2 / 255., prob=0.7,
+    def __init__(self, model=None, device=None, epsilon=8 / 255., k=1, kt=20, alpha=2 / 255., prob=0.7,
                  mask_num=30, mu=1.0, model_name='res18'):
         # set Parameters
         self.model = model.to(device)
@@ -88,7 +88,7 @@ class FeatureFT(object):
         grad_sum_l4 = grad_sum_l4 / grad_sum_l4.std()
 
         g = 0
-        x_cle = X_nat.detach()
+        x_cle = X_adv.detach()
         x_adv_ft = X_adv.clone().requires_grad_()
         for epoch in range(k1):
             self.model.zero_grad()
@@ -121,7 +121,7 @@ class FeatureFT(object):
     def target_pb(self, X_nat, X_adv, tar, ori, bs, ims, k2):
         
         g = 0
-        x_cle = X_nat.detach()
+        x_cle = X_adv.detach()
         x_adv_ft = X_adv.clone().requires_grad_()
         for epoch in range(k2):
             self.model.zero_grad()
