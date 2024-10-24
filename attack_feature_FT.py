@@ -51,8 +51,8 @@ class FeatureFT(object):
 
         X_adv_tar = X_nat
         for epcho in range(self.k):
-            X_adv_tar = self.untarget_pb(X_adv=X_adv_tar, tar=labels_tar, ori=labels_ori, bs=batch_size, ims=image_size, k1 = 5)
-            X_adv_tar = self.target_pb(X_adv=X_adv_tar, tar=labels_tar, ori=labels_ori, bs=batch_size, ims=image_size, k2 = 50)
+            X_adv_tar = self.untarget_pb(X_nat=X_nat, X_adv=X_adv_tar, tar=labels_tar, ori=labels_ori, bs=batch_size, ims=image_size, k1 = 5)
+            X_adv_tar = self.target_pb(X_nat=X_nat, X_adv=X_adv_tar, tar=labels_tar, ori=labels_ori, bs=batch_size, ims=image_size, k2 = 50)
 
         return X_adv_tar
 
@@ -90,7 +90,7 @@ class FeatureFT(object):
         g = 0
         x_cle = X_nat.detach()
         x_adv_ft = X_adv.clone().requires_grad_()
-        for epoch in range(self.k1):
+        for epoch in range(k1):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
             x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
@@ -118,12 +118,12 @@ class FeatureFT(object):
         return x_adv_ft
 
 
-    def target_pb(self, X_nat, X_adv, tar, ori, bs, ims):
+    def target_pb(self, X_nat, X_adv, tar, ori, bs, ims, k2):
         
         g = 0
         x_cle = X_nat.detach()
         x_adv_ft = X_adv.clone().requires_grad_()
-        for epoch in range(self.kt):
+        for epoch in range(k2):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
             x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
