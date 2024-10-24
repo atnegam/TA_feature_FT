@@ -56,7 +56,7 @@ class FeatureFT(object):
 
         return X_adv_tar
 
-    def untarget_pb(self, X_adv, tar, ori, bs, ims, k1):
+    def untarget_pb(self, X_nat, X_adv, tar, ori, bs, ims, k1):
 
         _, temp_x_l1, temp_x_l2, temp_x_l3, temp_x_l4 = self.model.features_grad_multi_layers(X_adv)
 
@@ -88,9 +88,9 @@ class FeatureFT(object):
         grad_sum_l4 = grad_sum_l4 / grad_sum_l4.std()
 
         g = 0
-        x_cle = X_adv.detach()
+        x_cle = X_nat.detach()
         x_adv_ft = X_adv.clone().requires_grad_()
-        for epoch in range(k1):
+        for epoch in range(self.k1):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
             x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
@@ -118,12 +118,12 @@ class FeatureFT(object):
         return x_adv_ft
 
 
-    def target_pb(self, X_adv, tar, ori, bs, ims, k2):
+    def target_pb(self, X_nat, X_adv, tar, ori, bs, ims):
         
         g = 0
-        x_cle = X_adv.detach()
+        x_cle = X_nat.detach()
         x_adv_ft = X_adv.clone().requires_grad_()
-        for epoch in range(k2):
+        for epoch in range(self.kt):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
             x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
