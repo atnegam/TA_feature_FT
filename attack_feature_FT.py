@@ -193,7 +193,7 @@ class FeatureFT(object):
         g1 = 0
         x_cle = X_nat.detach()
         x_adv_ft = X_nat.clone().requires_grad_()
-        for epoch in range(self.k // 2):
+        for epoch in range(self.k):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
             x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
@@ -218,13 +218,13 @@ class FeatureFT(object):
                 # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
             x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
             un_ae = x_adv_ft
-
+    
     #get targeted AE
 
         g2 = 0
         x_cle = X_nat.detach()
         x_adv_ft = un_ae.clone().requires_grad_()
-        for epoch in range(self.kt // 2):
+        for epoch in range(self.kt):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
             x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
