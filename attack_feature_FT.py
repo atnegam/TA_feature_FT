@@ -176,7 +176,7 @@ class FeatureFT(object):
             img_temp_i = img_temp_i * mask
             logits, x_l1, x_l2, x_l3, x_l4 = self.model.features_grad_multi_layers(img_temp_i)
             # gather logit_o
-            logit_label = logits.gather(1, labels_tar.unsqueeze(1)).squeeze(1)
+            logit_label = logits.gather(1, labels_ori.unsqueeze(1)).squeeze(1)
             logit_label.sum().backward()
             # aggregate the gradient
             grad_sum_l1 += x_l1.grad
@@ -205,7 +205,7 @@ class FeatureFT(object):
             loss3 = FIAloss(grad_sum_l3, mid_feature_l3)
             loss4 = FIAloss(grad_sum_l4, mid_feature_l4)
 
-            loss = - (loss1 + loss2 + loss3 + loss4) / 4
+            loss = (loss1 + loss2 + loss3 + loss4) / 4
 
             loss.backward()
             grad_c = x_adv_ft.grad
@@ -217,39 +217,39 @@ class FeatureFT(object):
                 eta = torch.clamp(x_adv_ft - x_cle, min=-self.epsilon, max=self.epsilon)
                 # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
             x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
-            un_ae = x_adv_ft
+            # un_ae = x_adv_ft
     
-    # #get targeted AE
+    #get targeted AE
 
-    #     g2 = 0
-    #     x_cle = X_nat.detach()
-    #     x_adv_ft = un_ae.clone().requires_grad_()
-    #     for epoch in range(self.kt):
-    #         self.model.zero_grad()
-    #         x_adv_ft.requires_grad_()
-    #         x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
-    #         x_adv_norm = norm(x_adv_ft_DI)                                  # [0, 1] to [-1, 1]
-    #         # mid_feature_l1, mid_feature_l2, mid_feature_l3, mid_feature_l4 = self.model.multi_layer_features(x_adv_norm)
-    #         # logits, _ = self.model._forward(x_adv_norm)
-    #         logits = self.model(x_adv_norm)
-    #         # loss = FIAloss(grad_sum_new_l1, mid_feature_l1)
-    #         # loss = FIAloss(grad_sum_new_l2, mid_feature_l2)
-    #         # loss = FIAloss(grad_sum_l3, mid_feature_l3)
-    #         # loss = FIAloss(grad_sum_new_l4, mid_feature_l4)
-    #         logitsT = logits.gather(1, labels_tar.unsqueeze(1)).squeeze(1)
-    #         logitsT = logitsT.sum()
-    #         loss = -logitsT
+        g2 = 0
+        x_cle = X_nat.detach()
+        x_adv_ft = x_adv_ft.clone().requires_grad_()
+        for epoch in range(self.kt):
+            self.model.zero_grad()
+            x_adv_ft.requires_grad_()
+            x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
+            x_adv_norm = norm(x_adv_ft_DI)                                  # [0, 1] to [-1, 1]
+            # mid_feature_l1, mid_feature_l2, mid_feature_l3, mid_feature_l4 = self.model.multi_layer_features(x_adv_norm)
+            # logits, _ = self.model._forward(x_adv_norm)
+            logits = self.model(x_adv_norm)
+            # loss = FIAloss(grad_sum_new_l1, mid_feature_l1)
+            # loss = FIAloss(grad_sum_new_l2, mid_feature_l2)
+            # loss = FIAloss(grad_sum_l3, mid_feature_l3)
+            # loss = FIAloss(grad_sum_new_l4, mid_feature_l4)
+            logitsT = logits.gather(1, labels_tar.unsqueeze(1)).squeeze(1)
+            logitsT = logitsT.sum()
+            loss = -logitsT
             
-    #         loss.backward()
-    #         grad_c = x_adv_ft.grad
-    #         grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
-    #         g2 = self.mu * g2 + grad_c                                                                   # MI
+            loss.backward()
+            grad_c = x_adv_ft.grad
+            grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
+            g2 = self.mu * g2 + grad_c                                                                   # MI
 
-    #         x_adv_ft = x_adv_ft - self.alpha * g2.sign()
-    #         with torch.no_grad():
-    #             eta = torch.clamp(x_adv_ft - x_cle, min=-self.epsilon, max=self.epsilon)
-    #             # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
-    #         x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
+            x_adv_ft = x_adv_ft - self.alpha * g2.sign()
+            with torch.no_grad():
+                eta = torch.clamp(x_adv_ft - x_cle, min=-self.epsilon, max=self.epsilon)
+                # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
+            x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
 
         return x_adv_ft
 
