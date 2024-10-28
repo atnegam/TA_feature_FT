@@ -328,6 +328,8 @@ class FeatureFT(object):
         grad_sum_l3 = 0
         grad_sum_l4 = 0
 
+        x_adv_ft = X_nat
+
         # calculate the feature importance from an AE crafted by a baseline attack
         grad_sum_mid_l1 = torch.zeros(temp_x_l1.shape).to(device)
         grad_sum_mid_l2 = torch.zeros(temp_x_l2.shape).to(device)
