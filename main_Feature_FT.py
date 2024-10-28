@@ -154,8 +154,8 @@ for k in range(0, 50):
     pos_ft[3] = pos_ft[3] + sum(predict_adv2 == labels_tar).cpu().numpy()
     neg_ori_ft[3] = neg_ori_ft[3] + sum(predict_adv2 == labels_ori).cpu().numpy()
 
-print(pos)
-# print(pos_ft)
-print(neg_ori)
-# print(neg_ori_ft)
+# print(pos)
+print(pos_ft)
+# print(neg_ori)
+print(neg_ori_ft)
 Done = 1
