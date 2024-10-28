@@ -352,7 +352,7 @@ class FeatureFT(object):
         grad_sum_mid_l4 = grad_sum_mid_l4 / grad_sum_mid_l4.std()
 
         # Eq.(6) Enhance the feature contribute to y_t and suppress that contribute to y_o
-        beta = 0.2
+        beta = 0
         grad_sum_new_l1 = grad_sum_mid_l1 - beta * grad_sum_l1
         grad_sum_new_l2 = grad_sum_mid_l2 - beta * grad_sum_l2
         grad_sum_new_l3 = grad_sum_mid_l3 - beta * grad_sum_l3
@@ -369,10 +369,10 @@ class FeatureFT(object):
             x_adv_norm = norm(x_adv_ft_DI)                                  # [0, 1] to [-1, 1]
             mid_feature_l1, mid_feature_l2, mid_feature_l3, mid_feature_l4 = self.model.multi_layer_features(x_adv_norm)
 
-            loss1 = FIAloss(grad_sum_l1*0.2, mid_feature_l1)
-            loss2 = FIAloss(grad_sum_l2*0.2, mid_feature_l2)
+            loss1 = FIAloss(grad_sum_l1, mid_feature_l1)
+            loss2 = FIAloss(grad_sum_l2, mid_feature_l2)
             loss3 = FIAloss(grad_sum_new_l3, mid_feature_l3)
-            loss4 = FIAloss(grad_sum_l4*0.2, mid_feature_l4)
+            loss4 = FIAloss(grad_sum_l4, mid_feature_l4)
 
             # loss = (loss1 + loss2 + loss3 + loss4) / 4
             loss = loss3
