@@ -354,7 +354,7 @@ class FeatureFT(object):
         grad_sum_mid_l4 = grad_sum_mid_l4 / grad_sum_mid_l4.std()
 
         # Eq.(6) Enhance the feature contribute to y_t and suppress that contribute to y_o
-        beta = 0
+        beta = 0.2
         grad_sum_new_l1 = grad_sum_mid_l1 - beta * grad_sum_l1
         grad_sum_new_l2 = grad_sum_mid_l2 - beta * grad_sum_l2
         grad_sum_new_l3 = grad_sum_mid_l3 - beta * grad_sum_l3
