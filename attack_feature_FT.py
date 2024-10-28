@@ -49,7 +49,6 @@ class FeatureFT(object):
         image_size = X_nat.shape[-1]
 
 
-
 # v5
 
     #     X_adv_tar = X_nat

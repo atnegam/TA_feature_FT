@@ -100,59 +100,59 @@ for k in range(0, 50):
     X_adv_ft = attack.perturb(X_cln, X_adv, labels_tar, labels_ori)
 
     #### 3. verify  before fine-tune ####
-    X_adv_norm = norm(X_adv_ft).detach()
-
-    output = model(X_adv_norm)
-    predict_adv = torch.argmax(output, dim=1)
-    # print(output.gather(1, labels_tar.unsqueeze(1)).sum().data)
-    pos[0] = pos[0] + sum(predict_adv != labels_ori).cpu().numpy()
-    neg_ori[0] = neg_ori[0] + sum(predict_adv == labels_ori).cpu().numpy()
-
-    output = model_2(X_adv_norm)
-    predict_adv = torch.argmax(output, dim=1)
-    # print(output.gather(1, labels_tar.unsqueeze(1)).sum().data)
-    pos[1] = pos[1] + sum(predict_adv != labels_ori).cpu().numpy()
-    neg_ori[1] = neg_ori[1] + sum(predict_adv == labels_ori).cpu().numpy()
-
-    output = model_3(X_adv_norm)
-    predict_adv = torch.argmax(output, dim=1)
-    # print(output.gather(1, labels_tar.unsqueeze(1)).sum().data)
-    pos[2] = pos[2] + sum(predict_adv != labels_ori).cpu().numpy()
-    neg_ori[2] = neg_ori[2] + sum(predict_adv == labels_ori).cpu().numpy()
-
-    output = model_4(X_adv_norm)
-    predict_adv = torch.argmax(output, dim=1)
-    # print(output.gather(1, labels_tar.unsqueeze(1)).sum().data)
-    pos[3] = pos[3] + sum(predict_adv != labels_ori).cpu().numpy()
-    neg_ori[3] = neg_ori[3] + sum(predict_adv == labels_ori).cpu().numpy()
-
-    #### after fine-tune ####
     # X_adv_norm = norm(X_adv_ft).detach()
 
     # output = model(X_adv_norm)
-    # predict_adv2 = torch.argmax(output, dim=1)
+    # predict_adv = torch.argmax(output, dim=1)
     # # print(output.gather(1, labels_tar.unsqueeze(1)).sum().data)
-    # pos_ft[0] = pos_ft[0] + sum(predict_adv2 == labels_tar).cpu().numpy()
-    # neg_ori_ft[0] = neg_ori_ft[0] + sum(predict_adv2 == labels_ori).cpu().numpy()
-
+    # pos[0] = pos[0] + sum(predict_adv != labels_ori).cpu().numpy()
+    # neg_ori[0] = neg_ori[0] + sum(predict_adv == labels_ori).cpu().numpy()
 
     # output = model_2(X_adv_norm)
-    # predict_adv2 = torch.argmax(output, dim=1)
+    # predict_adv = torch.argmax(output, dim=1)
     # # print(output.gather(1, labels_tar.unsqueeze(1)).sum().data)
-    # pos_ft[1] = pos_ft[1] + sum(predict_adv2 == labels_tar).cpu().numpy()
-    # neg_ori_ft[1] = neg_ori_ft[1] + sum(predict_adv2 == labels_ori).cpu().numpy()
+    # pos[1] = pos[1] + sum(predict_adv != labels_ori).cpu().numpy()
+    # neg_ori[1] = neg_ori[1] + sum(predict_adv == labels_ori).cpu().numpy()
 
     # output = model_3(X_adv_norm)
-    # predict_adv2 = torch.argmax(output, dim=1)
+    # predict_adv = torch.argmax(output, dim=1)
     # # print(output.gather(1, labels_tar.unsqueeze(1)).sum().data)
-    # pos_ft[2] = pos_ft[2] + sum(predict_adv2 == labels_tar).cpu().numpy()
-    # neg_ori_ft[2] = neg_ori_ft[2] + sum(predict_adv2 == labels_ori).cpu().numpy()
+    # pos[2] = pos[2] + sum(predict_adv != labels_ori).cpu().numpy()
+    # neg_ori[2] = neg_ori[2] + sum(predict_adv == labels_ori).cpu().numpy()
 
     # output = model_4(X_adv_norm)
-    # predict_adv2 = torch.argmax(output, dim=1)
+    # predict_adv = torch.argmax(output, dim=1)
     # # print(output.gather(1, labels_tar.unsqueeze(1)).sum().data)
-    # pos_ft[3] = pos_ft[3] + sum(predict_adv2 == labels_tar).cpu().numpy()
-    # neg_ori_ft[3] = neg_ori_ft[3] + sum(predict_adv2 == labels_ori).cpu().numpy()
+    # pos[3] = pos[3] + sum(predict_adv != labels_ori).cpu().numpy()
+    # neg_ori[3] = neg_ori[3] + sum(predict_adv == labels_ori).cpu().numpy()
+
+    #### after fine-tune ####
+    X_adv_norm = norm(X_adv_ft).detach()
+
+    output = model(X_adv_norm)
+    predict_adv2 = torch.argmax(output, dim=1)
+    # print(output.gather(1, labels_tar.unsqueeze(1)).sum().data)
+    pos_ft[0] = pos_ft[0] + sum(predict_adv2 == labels_tar).cpu().numpy()
+    neg_ori_ft[0] = neg_ori_ft[0] + sum(predict_adv2 == labels_ori).cpu().numpy()
+
+
+    output = model_2(X_adv_norm)
+    predict_adv2 = torch.argmax(output, dim=1)
+    # print(output.gather(1, labels_tar.unsqueeze(1)).sum().data)
+    pos_ft[1] = pos_ft[1] + sum(predict_adv2 == labels_tar).cpu().numpy()
+    neg_ori_ft[1] = neg_ori_ft[1] + sum(predict_adv2 == labels_ori).cpu().numpy()
+
+    output = model_3(X_adv_norm)
+    predict_adv2 = torch.argmax(output, dim=1)
+    # print(output.gather(1, labels_tar.unsqueeze(1)).sum().data)
+    pos_ft[2] = pos_ft[2] + sum(predict_adv2 == labels_tar).cpu().numpy()
+    neg_ori_ft[2] = neg_ori_ft[2] + sum(predict_adv2 == labels_ori).cpu().numpy()
+
+    output = model_4(X_adv_norm)
+    predict_adv2 = torch.argmax(output, dim=1)
+    # print(output.gather(1, labels_tar.unsqueeze(1)).sum().data)
+    pos_ft[3] = pos_ft[3] + sum(predict_adv2 == labels_tar).cpu().numpy()
+    neg_ori_ft[3] = neg_ori_ft[3] + sum(predict_adv2 == labels_ori).cpu().numpy()
 
 print(pos)
 # print(pos_ft)
