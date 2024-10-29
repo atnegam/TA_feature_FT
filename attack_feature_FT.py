@@ -18,7 +18,7 @@ gaussian_kernel = torch.from_numpy(gaussian_kernel).cuda()
 
 class FeatureFT(object):
     # imageNet
-    def __init__(self, model=None, device=None, epsilon=16 / 255., k=10, kt=200, alpha=2 / 255., prob=0.7,
+    def __init__(self, model=None, device=None, epsilon=16 / 255., k=10, kt=200, alpha=2.0 / 255., prob=0.7,
                  mask_num=30, mu=1.0, model_name='res18'):
         # set Parameters
         self.model = model.to(device)
@@ -254,10 +254,44 @@ class FeatureFT(object):
     #         x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
 
         # return x_adv_ft
+        def DI(X_in):
+            rnd = np.random.randint(299, 330,size=1)[0]
+            h_rem = 330 - rnd
+            w_rem = 330 - rnd
+            pad_top = np.random.randint(0, h_rem,size=1)[0]
+            pad_bottom = h_rem - pad_top
+            pad_left = np.random.randint(0, w_rem,size=1)[0]
+            pad_right = w_rem - pad_left
 
+            c = np.random.rand(1)
+            if c <= 0.7:
+                X_out = F.pad(F.interpolate(X_in, size=(rnd,rnd)),(pad_left,pad_top,pad_right,pad_bottom),mode='constant', value=0)
+                return  X_out 
+            else:
+                return  X_in
 
-
-
+#get targeted AE by Logits
+        X_ori = X_nat
+        delta = torch.zeros_like(X_nat,requires_grad=True).to(device)
+        grad_pre = 0
+        prev = float('inf')
+        for t in range(self.kt):
+            logits = self.model(norm(DI(X_ori + delta))) #DI
+            real = logits.gather(1,labels_tar.unsqueeze(1)).squeeze(1)
+            logit_dists = ( -1 * real)
+            loss = logit_dists.sum()
+            loss.backward()
+            grad_c = delta.grad.clone()
+            grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2,2), groups=3) #TI
+            grad_a = grad_c + 1 * grad_pre #MI
+            grad_pre = grad_a            
+            delta.grad.zero_()
+            delta.data = delta.data - self.alpha * torch.sign(grad_a)
+            delta.data = delta.data.clamp(-self.epsilon / 255,self.epsilon / 255) 
+            delta.data = ((X_ori + delta.data).clamp(0,1)) - X_ori
+        
+        return (X_ori + delta) 
+        
 # v6
 
     #get targeted AE
