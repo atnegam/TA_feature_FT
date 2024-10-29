@@ -99,7 +99,7 @@ for k in range(0, 50):
     #######
 
     #### 2. feature space fine-tuning ####
-    attack = FeatureFT(model=model, device=device, epsilon=16 / 255., k=10, kt=200)
+    attack = FeatureFT(model=model, device=device, epsilon=16 / 255., k=5, kt=200)
     X_adv_ft = attack.perturb(X_cln, X_adv, labels_tar, labels_ori)
 
     #### 3. verify  before fine-tune ####

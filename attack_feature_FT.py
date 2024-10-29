@@ -689,4 +689,4 @@ class FeatureFT(object):
 
 
 
-        return x_adv_ft
+        return x_adv_ft.detach()
