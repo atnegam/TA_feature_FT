@@ -254,21 +254,21 @@ class FeatureFT(object):
     #         x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
 
         # return x_adv_ft
-        def DI(X_in):
-            rnd = np.random.randint(299, 330,size=1)[0]
-            h_rem = 330 - rnd
-            w_rem = 330 - rnd
-            pad_top = np.random.randint(0, h_rem,size=1)[0]
-            pad_bottom = h_rem - pad_top
-            pad_left = np.random.randint(0, w_rem,size=1)[0]
-            pad_right = w_rem - pad_left
+        # def DI(X_in):
+        #     rnd = np.random.randint(299, 330,size=1)[0]
+        #     h_rem = 330 - rnd
+        #     w_rem = 330 - rnd
+        #     pad_top = np.random.randint(0, h_rem,size=1)[0]
+        #     pad_bottom = h_rem - pad_top
+        #     pad_left = np.random.randint(0, w_rem,size=1)[0]
+        #     pad_right = w_rem - pad_left
 
-            c = np.random.rand(1)
-            if c <= 0.7:
-                X_out = F.pad(F.interpolate(X_in, size=(rnd,rnd)),(pad_left,pad_top,pad_right,pad_bottom),mode='constant', value=0)
-                return  X_out 
-            else:
-                return  X_in
+        #     c = np.random.rand(1)
+        #     if c <= 0.7:
+        #         X_out = F.pad(F.interpolate(X_in, size=(rnd,rnd)),(pad_left,pad_top,pad_right,pad_bottom),mode='constant', value=0)
+        #         return  X_out 
+        #     else:
+        #         return  X_in
 
 #get targeted AE by Logits
         X_ori = X_nat
@@ -276,7 +276,7 @@ class FeatureFT(object):
         grad_pre = 0
         prev = float('inf')
         for t in range(self.kt):
-            logits = self.model(norm(DI(X_ori + delta))) #DI
+            logits = self.model(norm(DI_keepresolution(X_ori + delta))) #DI
             real = logits.gather(1,labels_tar.unsqueeze(1)).squeeze(1)
             logit_dists = ( -1 * real)
             loss = logit_dists.sum()
