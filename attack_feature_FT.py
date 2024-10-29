@@ -302,7 +302,7 @@ class FeatureFT(object):
         for epoch in range(self.kt):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
-            x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
+            x_adv_ft_DI = DI(x_adv_ft)                       # DI
             x_adv_norm = norm(x_adv_ft_DI)                                  # [0, 1] to [-1, 1]
             logits = self.model(x_adv_norm)
             logitsT = logits.gather(1, labels_tar.unsqueeze(1)).squeeze(1)
