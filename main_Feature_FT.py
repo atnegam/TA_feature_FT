@@ -42,7 +42,7 @@ model_3.to(device)
 model_4.to(device)
 
 img_size = 299
-batch_size = 20
+batch_size = 4
 # clean_path = 'E://Python/AE_transfer/Target/dataset/images/'  # clean images
 clean_path = '../CEdataset/images/'
 
@@ -76,7 +76,7 @@ pos_ft = np.zeros(4)
 neg_ori_ft = np.zeros(4)     # restored
 
 torch.manual_seed(42)
-for k in range(0, 50):
+for k in range(0, 250):
     if k % 1 == 0:
         print(k)
     #### 1. preparing data ####
