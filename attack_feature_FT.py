@@ -287,7 +287,7 @@ class FeatureFT(object):
             grad_pre = grad_a            
             delta.grad.zero_()
             delta.data = delta.data - self.alpha * torch.sign(grad_a)
-            delta.data = delta.data.clamp(-self.epsilon / 255,self.epsilon / 255) 
+            delta.data = delta.data.clamp(-self.epsilon, self.epsilon) 
             delta.data = ((X_ori + delta.data).clamp(0,1)) - X_ori
         
         return (X_ori + delta) 
