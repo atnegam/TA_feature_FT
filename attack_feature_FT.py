@@ -270,27 +270,27 @@ class FeatureFT(object):
         #     else:
         #         return  X_in
 
-#get targeted AE by Logits
-        X_ori = X_nat
-        delta = torch.zeros_like(X_nat,requires_grad=True).to(device)
-        grad_pre = 0
-        prev = float('inf')
-        for t in range(self.kt):
-            logits = self.model(norm(DI_keepresolution(X_ori + delta))) #DI
-            real = logits.gather(1,labels_tar.unsqueeze(1)).squeeze(1)
-            logit_dists = ( -1 * real)
-            loss = logit_dists.sum()
-            loss.backward()
-            grad_c = delta.grad.clone()
-            grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2,2), groups=3) #TI
-            grad_a = grad_c + 1 * grad_pre #MI
-            grad_pre = grad_a            
-            delta.grad.zero_()
-            delta.data = delta.data - self.alpha * torch.sign(grad_a)
-            delta.data = delta.data.clamp(-self.epsilon, self.epsilon) 
-            delta.data = ((X_ori + delta.data).clamp(0,1)) - X_ori
+# #get targeted AE by Logits
+#         X_ori = X_nat
+#         delta = torch.zeros_like(X_nat,requires_grad=True).to(device)
+#         grad_pre = 0
+#         prev = float('inf')
+#         for t in range(self.kt):
+#             logits = self.model(norm(DI_keepresolution(X_ori + delta))) #DI
+#             real = logits.gather(1,labels_tar.unsqueeze(1)).squeeze(1)
+#             logit_dists = ( -1 * real)
+#             loss = logit_dists.sum()
+#             loss.backward()
+#             grad_c = delta.grad.clone()
+#             grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2,2), groups=3) #TI
+#             grad_a = grad_c + 1 * grad_pre #MI
+#             grad_pre = grad_a            
+#             delta.grad.zero_()
+#             delta.data = delta.data - self.alpha * torch.sign(grad_a)
+#             delta.data = delta.data.clamp(-self.epsilon, self.epsilon) 
+#             delta.data = ((X_ori + delta.data).clamp(0,1)) - X_ori
         
-        return (X_ori + delta) 
+#         return (X_ori + delta) 
         
 # v6
 
@@ -321,6 +321,7 @@ class FeatureFT(object):
             x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
 
         return x_adv_ft
+    
     # get untarget AE
         _, temp_x_l1, temp_x_l2, temp_x_l3, temp_x_l4 = self.model.features_grad_multi_layers(X_nat)
         # calculate the feature importance (to y_o) from the clean image

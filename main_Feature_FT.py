@@ -22,6 +22,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 checkpt_dir = '../chk/'
 model_2 = inception_v3(weights=None, transform_input=True)
 model_2.load_state_dict(torch.load(checkpt_dir + 'inception_v3_google-0cc3c7bd.pth'))
+model_2 = model_2.eval()
 # model_2 = models.inception_v3(weights=Inception_V3_Weights.DEFAULT, transform_input=True).eval()
 # model_2 = models.resnet50(weights=ResNet50_Weights.IMAGENET1K_V1).eval()
 model_3 = models.densenet121(weights=DenseNet121_Weights.IMAGENET1K_V1).eval()
