@@ -296,37 +296,37 @@ class FeatureFT(object):
     # get untarget AE
         _, temp_x_l1, temp_x_l2, temp_x_l3, temp_x_l4 = self.model.features_grad_multi_layers(X_nat)
         # calculate the feature importance (to y_o) from the clean image
-        # grad_sum_l1 = torch.zeros(temp_x_l1.shape).to(device)
-        # grad_sum_l2 = torch.zeros(temp_x_l2.shape).to(device)
-        # grad_sum_l3 = torch.zeros(temp_x_l3.shape).to(device)
-        # grad_sum_l4 = torch.zeros(temp_x_l4.shape).to(device)
-        # for i in range(self.mask_num):
-        #     self.model.zero_grad()
-        #     img_temp_i = norm(X_nat).clone()
-        #     # drop a few pixels randomly
-        #     mask = torch.tensor(np.random.binomial(1, self.prob, size=(batch_size, 3, image_size, image_size))).to(
-        #         device)
-        #     img_temp_i = img_temp_i * mask
-        #     logits, x_l1, x_l2, x_l3, x_l4 = self.model.features_grad_multi_layers(img_temp_i)
-        #     # gather logit_o
-        #     logit_label = logits.gather(1, labels_ori.unsqueeze(1)).squeeze(1)
-        #     logit_label.sum().backward()
-        #     # aggregate the gradient
-        #     grad_sum_l1 += x_l1.grad
-        #     grad_sum_l2 += x_l2.grad
-        #     grad_sum_l3 += x_l3.grad
-        #     grad_sum_l4 += x_l4.grad
+        grad_sum_l1 = torch.zeros(temp_x_l1.shape).to(device)
+        grad_sum_l2 = torch.zeros(temp_x_l2.shape).to(device)
+        grad_sum_l3 = torch.zeros(temp_x_l3.shape).to(device)
+        grad_sum_l4 = torch.zeros(temp_x_l4.shape).to(device)
+        for i in range(self.mask_num):
+            self.model.zero_grad()
+            img_temp_i = norm(X_nat).clone()
+            # drop a few pixels randomly
+            mask = torch.tensor(np.random.binomial(1, self.prob, size=(batch_size, 3, image_size, image_size))).to(
+                device)
+            img_temp_i = img_temp_i * mask
+            logits, x_l1, x_l2, x_l3, x_l4 = self.model.features_grad_multi_layers(img_temp_i)
+            # gather logit_o
+            logit_label = logits.gather(1, labels_ori.unsqueeze(1)).squeeze(1)
+            logit_label.sum().backward()
+            # aggregate the gradient
+            grad_sum_l1 += x_l1.grad
+            grad_sum_l2 += x_l2.grad
+            grad_sum_l3 += x_l3.grad
+            grad_sum_l4 += x_l4.grad
 
-        # # # normalize the aggregated gradient. You can change it to average
-        # grad_sum_l1 = grad_sum_l1 / grad_sum_l1.std()
-        # grad_sum_l2 = grad_sum_l2 / grad_sum_l2.std()
-        # grad_sum_l3 = grad_sum_l3 / grad_sum_l3.std()
-        # grad_sum_l4 = grad_sum_l4 / grad_sum_l4.std()
+        # # normalize the aggregated gradient. You can change it to average
+        grad_sum_l1 = grad_sum_l1 / grad_sum_l1.std()
+        grad_sum_l2 = grad_sum_l2 / grad_sum_l2.std()
+        grad_sum_l3 = grad_sum_l3 / grad_sum_l3.std()
+        grad_sum_l4 = grad_sum_l4 / grad_sum_l4.std()
 
-        grad_sum_l1 = 0
-        grad_sum_l2 = 0
-        grad_sum_l3 = 0
-        grad_sum_l4 = 0
+        # grad_sum_l1 = 0
+        # grad_sum_l2 = 0
+        # grad_sum_l3 = 0
+        # grad_sum_l4 = 0
 
         # calculate the feature importance from an AE crafted by a baseline attack
         grad_sum_mid_l1 = torch.zeros(temp_x_l1.shape).to(device)
@@ -356,7 +356,7 @@ class FeatureFT(object):
         grad_sum_mid_l4 = grad_sum_mid_l4 / grad_sum_mid_l4.std()
 
         # Eq.(6) Enhance the feature contribute to y_t and suppress that contribute to y_o
-        beta = 0
+        beta = 0.2
         grad_sum_new_l1 = grad_sum_mid_l1 - beta * grad_sum_l1
         grad_sum_new_l2 = grad_sum_mid_l2 - beta * grad_sum_l2
         grad_sum_new_l3 = grad_sum_mid_l3 - beta * grad_sum_l3
