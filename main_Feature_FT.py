@@ -42,7 +42,7 @@ model_3.to(device)
 model_4.to(device)
 
 img_size = 299
-batch_size = 4
+batch_size = 20
 # clean_path = 'E://Python/AE_transfer/Target/dataset/images/'  # clean images
 clean_path = '../CEdataset/images/'
 
@@ -76,7 +76,7 @@ pos_ft = np.zeros(4)
 neg_ori_ft = np.zeros(4)     # restored
 
 torch.manual_seed(42)
-for k in range(0, 250):
+for k in range(0, 50):
     if k % 1 == 0:
         print(k)
     #### 1. preparing data ####
@@ -98,7 +98,7 @@ for k in range(0, 250):
     #######
 
     #### 2. feature space fine-tuning ####
-    attack = FeatureFT(model=model, device=device, epsilon=16 / 255., k=10, kt=160)
+    attack = FeatureFT(model=model, device=device, epsilon=16 / 255., k=10, kt=200)
     X_adv_ft = attack.perturb(X_cln, X_adv, labels_tar, labels_ori)
 
     #### 3. verify  before fine-tune ####

@@ -18,7 +18,7 @@ gaussian_kernel = torch.from_numpy(gaussian_kernel).cuda()
 
 class FeatureFT(object):
     # imageNet
-    def __init__(self, model=None, device=None, epsilon=8 / 255., k=10, kt=200, alpha=2 / 255., prob=0.7,
+    def __init__(self, model=None, device=None, epsilon=16 / 255., k=10, kt=200, alpha=2 / 255., prob=0.7,
                  mask_num=30, mu=1.0, model_name='res18'):
         # set Parameters
         self.model = model.to(device)
@@ -270,13 +270,7 @@ class FeatureFT(object):
             x_adv_ft.requires_grad_()
             x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
             x_adv_norm = norm(x_adv_ft_DI)                                  # [0, 1] to [-1, 1]
-            # mid_feature_l1, mid_feature_l2, mid_feature_l3, mid_feature_l4 = self.model.multi_layer_features(x_adv_norm)
-            # logits, _ = self.model._forward(x_adv_norm)
             logits = self.model(x_adv_norm)
-            # loss = FIAloss(grad_sum_new_l1, mid_feature_l1)
-            # loss = FIAloss(grad_sum_new_l2, mid_feature_l2)
-            # loss = FIAloss(grad_sum_l3, mid_feature_l3)
-            # loss = FIAloss(grad_sum_new_l4, mid_feature_l4)
             logitsT = logits.gather(1, labels_tar.unsqueeze(1)).squeeze(1)
             logitsT = logitsT.sum()
             loss = -logitsT
@@ -292,7 +286,7 @@ class FeatureFT(object):
                 # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
             x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
 
-
+        return x_adv_ft
     # get untarget AE
         _, temp_x_l1, temp_x_l2, temp_x_l3, temp_x_l4 = self.model.features_grad_multi_layers(X_nat)
         # calculate the feature importance (to y_o) from the clean image
