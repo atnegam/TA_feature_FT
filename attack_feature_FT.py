@@ -18,7 +18,7 @@ gaussian_kernel = torch.from_numpy(gaussian_kernel).cuda()
 
 class FeatureFT(object):
     # imageNet
-    def __init__(self, model=None, device=None, epsilon=16 / 255., k=10, kt=200, alpha=2.0 / 255., prob=0.7,
+    def __init__(self, model=None, device=None, epsilon=16 / 255., k=10, kt=200, alpha=2 / 255., prob=0.7,
                  mask_num=30, mu=1.0, model_name='res18'):
         # set Parameters
         self.model = model.to(device)
@@ -44,7 +44,7 @@ class FeatureFT(object):
         labels_tar = y_tar.clone().detach().to(self.device)
         labels_ori = y_ori.clone().detach().to(self.device)
         # in place
-        _, temp_x_l1, temp_x_l2, temp_x_l3, temp_x_l4 = self.model.features_grad_multi_layers(X_adv)
+        _, temp_x_l1, temp_x_l2, temp_x_l3, temp_x_l4 = self.model.features_grad_multi_layers(X_nat)
         batch_size = X_nat.shape[0]
         image_size = X_nat.shape[-1]
 
