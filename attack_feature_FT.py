@@ -320,7 +320,7 @@ class FeatureFT(object):
                 # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
             x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
 
-        return x_adv_ft
+        # return x_adv_ft
     
     # get untarget AE
         _, temp_x_l1, temp_x_l2, temp_x_l3, temp_x_l4 = self.model.features_grad_multi_layers(X_nat)
