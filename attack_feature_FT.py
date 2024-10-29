@@ -271,56 +271,56 @@ class FeatureFT(object):
         #         return  X_in
 
 #get targeted AE by Logits
-        X_ori = X_nat
-        delta = torch.zeros_like(X_nat,requires_grad=True).to(device)
-        grad_pre = 0
-        prev = float('inf')
-        for t in range(self.kt):
-            logits = self.model(norm(DI_keepresolution(X_ori + delta))) #DI
-            real = logits.gather(1,labels_tar.unsqueeze(1)).squeeze(1)
-            logit_dists = ( -1 * real)
-            loss = logit_dists.sum()
-            loss.backward()
-            grad_c = delta.grad.clone()
-            grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2,2), groups=3) #TI
-            grad_a = grad_c + 1 * grad_pre #MI
-            grad_pre = grad_a            
-            delta.grad.zero_()
-            delta.data = delta.data - self.alpha * torch.sign(grad_a)
-            delta.data = delta.data.clamp(-self.epsilon, self.epsilon) 
-            delta.data = ((X_ori + delta.data).clamp(0,1)) - X_ori
+        # X_ori = X_nat
+        # delta = torch.zeros_like(X_nat,requires_grad=True).to(device)
+        # grad_pre = 0
+        # prev = float('inf')
+        # for t in range(self.kt):
+        #     logits = self.model(norm(DI_keepresolution(X_ori + delta))) #DI
+        #     real = logits.gather(1,labels_tar.unsqueeze(1)).squeeze(1)
+        #     logit_dists = ( -1 * real)
+        #     loss = logit_dists.sum()
+        #     loss.backward()
+        #     grad_c = delta.grad.clone()
+        #     grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2,2), groups=3) #TI
+        #     grad_a = grad_c + 1 * grad_pre #MI
+        #     grad_pre = grad_a            
+        #     delta.grad.zero_()
+        #     delta.data = delta.data - self.alpha * torch.sign(grad_a)
+        #     delta.data = delta.data.clamp(-self.epsilon, self.epsilon) 
+        #     delta.data = ((X_ori + delta.data).clamp(0,1)) - X_ori
         
-        return (X_ori + delta) 
+        # return (X_ori + delta) 
         
 # v6
 
     #get targeted AE
 
-        # g2 = 0
-        # x_cle = X_nat.detach()
-        # x_adv_ft = X_nat.clone().requires_grad_()
-        # for epoch in range(self.kt):
-        #     self.model.zero_grad()
-        #     x_adv_ft.requires_grad_()
-        #     x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
-        #     x_adv_norm = norm(x_adv_ft_DI)                                  # [0, 1] to [-1, 1]
-        #     logits = self.model(x_adv_norm)
-        #     logitsT = logits.gather(1, labels_tar.unsqueeze(1)).squeeze(1)
-        #     logitsT = logitsT.sum()
-        #     loss = -logitsT
+        g2 = 0
+        x_cle = X_nat.detach()
+        x_adv_ft = X_nat.clone().requires_grad_()
+        for epoch in range(self.kt):
+            self.model.zero_grad()
+            x_adv_ft.requires_grad_()
+            x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
+            x_adv_norm = norm(x_adv_ft_DI)                                  # [0, 1] to [-1, 1]
+            logits = self.model(x_adv_norm)
+            logitsT = logits.gather(1, labels_tar.unsqueeze(1)).squeeze(1)
+            logitsT = logitsT.sum()
+            loss = -logitsT
             
-        #     loss.backward()
-        #     grad_c = x_adv_ft.grad
-        #     grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
-        #     g2 = self.mu * g2 + grad_c                                                                   # MI
+            loss.backward()
+            grad_c = x_adv_ft.grad
+            grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
+            g2 = self.mu * g2 + grad_c                                                                   # MI
 
-        #     x_adv_ft = x_adv_ft - self.alpha * g2.sign()
-        #     with torch.no_grad():
-        #         eta = torch.clamp(x_adv_ft - x_cle, min=-self.epsilon, max=self.epsilon)
-        #         # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
-        #     x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
+            x_adv_ft = x_adv_ft - self.alpha * g2.sign()
+            with torch.no_grad():
+                eta = torch.clamp(x_adv_ft - x_cle, min=-self.epsilon, max=self.epsilon)
+                # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
+            x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
 
-        # return x_adv_ft
+        return x_adv_ft
     
     # get untarget AE
         # _, temp_x_l1, temp_x_l2, temp_x_l3, temp_x_l4 = self.model.features_grad_multi_layers(X_nat)
