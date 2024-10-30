@@ -136,7 +136,7 @@ class FeatureFT(object):
             grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
             g1 = self.mu * g1 + grad_c                                                                   # MI
 
-            x_adv_ft = x_adv_ft + self.alpha * g1.sign()
+            x_adv_ft = x_adv_ft + self.alpha1 * g1.sign()
             with torch.no_grad():
                 eta = torch.clamp(x_adv_ft - x_cle, min=-self.epsilon, max=self.epsilon)
                 # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
