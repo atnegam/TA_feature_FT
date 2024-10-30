@@ -39,7 +39,7 @@ class FeatureFT(object):
     y_ori: the original label (of X_nat)
     '''
     def perturb(self, X_nat, X_adv, y_tar, y_ori):
-        # self.alpha = self.epsilon / 16.
+        self.alpha = self.epsilon / 16.
         # get grads
         labels_tar = y_tar.clone().detach().to(self.device)
         labels_ori = y_ori.clone().detach().to(self.device)
