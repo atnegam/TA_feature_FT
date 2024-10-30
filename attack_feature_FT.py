@@ -49,6 +49,39 @@ class FeatureFT(object):
         image_size = X_nat.shape[-1]
 # v6
 
+        # calculate the feature importance from an AE crafted by a baseline attack
+        # grad_sum_mid_l1 = torch.zeros(temp_x_l1.shape).to(device)
+        # grad_sum_mid_l2 = torch.zeros(temp_x_l2.shape).to(device)
+        grad_sum_mid_l3 = torch.zeros(temp_x_l3.shape).to(device)
+        # grad_sum_mid_l4 = torch.zeros(temp_x_l4.shape).to(device)
+        for i in range(self.mask_num):
+            self.model.zero_grad()
+            img_temp_i = norm(x_adv_ft).clone()
+            mask = torch.tensor(np.random.binomial(1, self.prob, size=(batch_size, 3, image_size, image_size))).to(
+                device)
+            img_temp_i = img_temp_i * mask
+            logits, x_l1, x_l2, x_l3, x_l4 = self.model.features_grad_multi_layers(img_temp_i)
+            # gather logit_t
+            logit_label = logits.gather(1, labels_tar.unsqueeze(1)).squeeze(1)
+            logit_label.sum().backward()
+
+            # grad_sum_mid_l1 += x_l1.grad
+            # grad_sum_mid_l2 += x_l2.grad
+            grad_sum_mid_l3 += x_l3.grad
+            # grad_sum_mid_l4 += x_l4.grad
+
+        # normalize the aggregated gradient. You can change it to average
+        # grad_sum_mid_l1 = grad_sum_mid_l1 / grad_sum_mid_l1.std()
+        # grad_sum_mid_l2 = grad_sum_mid_l2 / grad_sum_mid_l2.std()
+        grad_sum_mid_l3 = grad_sum_mid_l3 / grad_sum_mid_l3.std()
+        # grad_sum_mid_l4 = grad_sum_mid_l4 / grad_sum_mid_l4.std()
+
+        # Eq.(6) Enhance the feature contribute to y_t and suppress that contribute to y_o
+        beta = 0.2
+        # grad_sum_new_l1 = grad_sum_mid_l1
+        # grad_sum_new_l2 = grad_sum_mid_l2
+        grad_sum_new_l3 = grad_sum_mid_l3
+
     #get targeted AE
 
         g2 = 0
@@ -62,8 +95,14 @@ class FeatureFT(object):
             logits = self.model(x_adv_norm)
             logitsT = logits.gather(1, labels_tar.unsqueeze(1)).squeeze(1)
             logitsT = logitsT.sum()
-            loss = -logitsT
-            
+            if self.kt <= 200:
+                loss = -logitsT
+            else:
+                x_adv_ft_KDI = DI_keepresolution(x_adv_ft)
+                x_adv_norm = norm(x_adv_ft_KDI)
+                mid_feature_l1, mid_feature_l2, mid_feature_l3, mid_feature_l4 = self.model.multi_layer_features(x_adv_norm)
+                loss = -(logitsT + FIAloss(grad_sum_new_l3, mid_feature_l3))
+                
             loss.backward()
             grad_c = x_adv_ft.grad
             grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
@@ -79,162 +118,162 @@ class FeatureFT(object):
     
 #FT
 
-        # calculate the feature importance from an AE crafted by a baseline attack
-        # grad_sum_mid_l1 = torch.zeros(temp_x_l1.shape).to(device)
-        # grad_sum_mid_l2 = torch.zeros(temp_x_l2.shape).to(device)
-        grad_sum_mid_l3 = torch.zeros(temp_x_l3.shape).to(device)
-        # grad_sum_mid_l4 = torch.zeros(temp_x_l4.shape).to(device)
-        for i in range(self.mask_num):
-            self.model.zero_grad()
-            img_temp_i = norm(x_adv_ft).clone()
-            mask = torch.tensor(np.random.binomial(1, self.prob, size=(batch_size, 3, image_size, image_size))).to(
-                device)
-            img_temp_i = img_temp_i * mask
-            logits, x_l1, x_l2, x_l3, x_l4 = self.model.features_grad_multi_layers(img_temp_i)
-            # gather logit_t
-            logit_label = logits.gather(1, labels_tar.unsqueeze(1)).squeeze(1)
-            logit_label.sum().backward()
+#         # calculate the feature importance from an AE crafted by a baseline attack
+#         # grad_sum_mid_l1 = torch.zeros(temp_x_l1.shape).to(device)
+#         # grad_sum_mid_l2 = torch.zeros(temp_x_l2.shape).to(device)
+#         grad_sum_mid_l3 = torch.zeros(temp_x_l3.shape).to(device)
+#         # grad_sum_mid_l4 = torch.zeros(temp_x_l4.shape).to(device)
+#         for i in range(self.mask_num):
+#             self.model.zero_grad()
+#             img_temp_i = norm(x_adv_ft).clone()
+#             mask = torch.tensor(np.random.binomial(1, self.prob, size=(batch_size, 3, image_size, image_size))).to(
+#                 device)
+#             img_temp_i = img_temp_i * mask
+#             logits, x_l1, x_l2, x_l3, x_l4 = self.model.features_grad_multi_layers(img_temp_i)
+#             # gather logit_t
+#             logit_label = logits.gather(1, labels_tar.unsqueeze(1)).squeeze(1)
+#             logit_label.sum().backward()
 
-            # grad_sum_mid_l1 += x_l1.grad
-            # grad_sum_mid_l2 += x_l2.grad
-            grad_sum_mid_l3 += x_l3.grad
-            # grad_sum_mid_l4 += x_l4.grad
+#             # grad_sum_mid_l1 += x_l1.grad
+#             # grad_sum_mid_l2 += x_l2.grad
+#             grad_sum_mid_l3 += x_l3.grad
+#             # grad_sum_mid_l4 += x_l4.grad
 
-        # normalize the aggregated gradient. You can change it to average
-        # grad_sum_mid_l1 = grad_sum_mid_l1 / grad_sum_mid_l1.std()
-        # grad_sum_mid_l2 = grad_sum_mid_l2 / grad_sum_mid_l2.std()
-        grad_sum_mid_l3 = grad_sum_mid_l3 / grad_sum_mid_l3.std()
-        # grad_sum_mid_l4 = grad_sum_mid_l4 / grad_sum_mid_l4.std()
+#         # normalize the aggregated gradient. You can change it to average
+#         # grad_sum_mid_l1 = grad_sum_mid_l1 / grad_sum_mid_l1.std()
+#         # grad_sum_mid_l2 = grad_sum_mid_l2 / grad_sum_mid_l2.std()
+#         grad_sum_mid_l3 = grad_sum_mid_l3 / grad_sum_mid_l3.std()
+#         # grad_sum_mid_l4 = grad_sum_mid_l4 / grad_sum_mid_l4.std()
 
-        # Eq.(6) Enhance the feature contribute to y_t and suppress that contribute to y_o
-        beta = 0.2
-        # grad_sum_new_l1 = grad_sum_mid_l1
-        # grad_sum_new_l2 = grad_sum_mid_l2
-        grad_sum_new_l3 = grad_sum_mid_l3
-        # grad_sum_new_l4 = grad_sum_mid_l4
-
-
-        g1 = 0
-        x_cle = X_nat.detach()
-        x_adv_ft = x_adv_ft.clone()
-        for epoch in range(self.k):
-            self.model.zero_grad()
-            x_adv_ft.requires_grad_()
-            x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
-            x_adv_norm = norm(x_adv_ft_DI)                                  # [0, 1] to [-1, 1]
-            mid_feature_l1, mid_feature_l2, mid_feature_l3, mid_feature_l4 = self.model.multi_layer_features(x_adv_norm)
-
-            # loss1 = FIAloss(grad_sum_l1, mid_feature_l1)
-            # loss2 = FIAloss(grad_sum_l2, mid_feature_l2)
-            loss3 = FIAloss(grad_sum_new_l3, mid_feature_l3)
-            # loss4 = FIAloss(grad_sum_l4, mid_feature_l4)
-
-            # loss = (loss1 + loss2 + loss3 + loss4) / 4
-            loss = loss3
-            loss.backward()
-            grad_c = x_adv_ft.grad
-            grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
-            g1 = self.mu * g1 + grad_c                                                                   # MI
-
-            x_adv_ft = x_adv_ft + self.alpha * g1.sign()
-            with torch.no_grad():
-                eta = torch.clamp(x_adv_ft - x_cle, min=-self.epsilon, max=self.epsilon)
-                # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
-            x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
+#         # Eq.(6) Enhance the feature contribute to y_t and suppress that contribute to y_o
+#         beta = 0.2
+#         # grad_sum_new_l1 = grad_sum_mid_l1
+#         # grad_sum_new_l2 = grad_sum_mid_l2
+#         grad_sum_new_l3 = grad_sum_mid_l3
+#         # grad_sum_new_l4 = grad_sum_mid_l4
 
 
+#         g1 = 0
+#         x_cle = X_nat.detach()
+#         x_adv_ft = x_adv_ft.clone()
+#         for epoch in range(self.k):
+#             self.model.zero_grad()
+#             x_adv_ft.requires_grad_()
+#             x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
+#             x_adv_norm = norm(x_adv_ft_DI)                                  # [0, 1] to [-1, 1]
+#             mid_feature_l1, mid_feature_l2, mid_feature_l3, mid_feature_l4 = self.model.multi_layer_features(x_adv_norm)
 
-        g2 = 0
-        x_cle = X_nat.detach()
-        x_adv_ft = X_nat.clone().requires_grad_()
-        for epoch in range(self.kt):
-            self.model.zero_grad()
-            x_adv_ft.requires_grad_()
-            x_adv_ft_DI = DI(x_adv_ft)                       # DI
-            x_adv_norm = norm(x_adv_ft_DI)                                  # [0, 1] to [-1, 1]
-            logits = self.model(x_adv_norm)
-            logitsT = logits.gather(1, labels_tar.unsqueeze(1)).squeeze(1)
-            logitsT = logitsT.sum()
-            loss = -logitsT
+#             # loss1 = FIAloss(grad_sum_l1, mid_feature_l1)
+#             # loss2 = FIAloss(grad_sum_l2, mid_feature_l2)
+#             loss3 = FIAloss(grad_sum_new_l3, mid_feature_l3)
+#             # loss4 = FIAloss(grad_sum_l4, mid_feature_l4)
+
+#             # loss = (loss1 + loss2 + loss3 + loss4) / 4
+#             loss = loss3
+#             loss.backward()
+#             grad_c = x_adv_ft.grad
+#             grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
+#             g1 = self.mu * g1 + grad_c                                                                   # MI
+
+#             x_adv_ft = x_adv_ft + self.alpha * g1.sign()
+#             with torch.no_grad():
+#                 eta = torch.clamp(x_adv_ft - x_cle, min=-self.epsilon, max=self.epsilon)
+#                 # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
+#             x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
+
+
+
+#         g2 = 0
+#         x_cle = X_nat.detach()
+#         x_adv_ft = X_nat.clone().requires_grad_()
+#         for epoch in range(self.kt):
+#             self.model.zero_grad()
+#             x_adv_ft.requires_grad_()
+#             x_adv_ft_DI = DI(x_adv_ft)                       # DI
+#             x_adv_norm = norm(x_adv_ft_DI)                                  # [0, 1] to [-1, 1]
+#             logits = self.model(x_adv_norm)
+#             logitsT = logits.gather(1, labels_tar.unsqueeze(1)).squeeze(1)
+#             logitsT = logitsT.sum()
+#             loss = -logitsT
             
-            loss.backward()
-            grad_c = x_adv_ft.grad
-            grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
-            g2 = self.mu * g2 + grad_c                                                                   # MI
+#             loss.backward()
+#             grad_c = x_adv_ft.grad
+#             grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
+#             g2 = self.mu * g2 + grad_c                                                                   # MI
 
-            x_adv_ft = x_adv_ft - self.alpha * g2.sign()
-            with torch.no_grad():
-                eta = torch.clamp(x_adv_ft - x_cle, min=-self.epsilon, max=self.epsilon)
-                # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
-            x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
+#             x_adv_ft = x_adv_ft - self.alpha * g2.sign()
+#             with torch.no_grad():
+#                 eta = torch.clamp(x_adv_ft - x_cle, min=-self.epsilon, max=self.epsilon)
+#                 # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
+#             x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
 
-        # return x_adv_ft
-
-
-#FT
-
-        # calculate the feature importance from an AE crafted by a baseline attack
-        # grad_sum_mid_l1 = torch.zeros(temp_x_l1.shape).to(device)
-        # grad_sum_mid_l2 = torch.zeros(temp_x_l2.shape).to(device)
-        grad_sum_mid_l3 = torch.zeros(temp_x_l3.shape).to(device)
-        # grad_sum_mid_l4 = torch.zeros(temp_x_l4.shape).to(device)
-        for i in range(self.mask_num):
-            self.model.zero_grad()
-            img_temp_i = norm(x_adv_ft).clone()
-            mask = torch.tensor(np.random.binomial(1, self.prob, size=(batch_size, 3, image_size, image_size))).to(
-                device)
-            img_temp_i = img_temp_i * mask
-            logits, x_l1, x_l2, x_l3, x_l4 = self.model.features_grad_multi_layers(img_temp_i)
-            # gather logit_t
-            logit_label = logits.gather(1, labels_tar.unsqueeze(1)).squeeze(1)
-            logit_label.sum().backward()
-
-            # grad_sum_mid_l1 += x_l1.grad
-            # grad_sum_mid_l2 += x_l2.grad
-            grad_sum_mid_l3 += x_l3.grad
-            # grad_sum_mid_l4 += x_l4.grad
-
-        # normalize the aggregated gradient. You can change it to average
-        # grad_sum_mid_l1 = grad_sum_mid_l1 / grad_sum_mid_l1.std()
-        # grad_sum_mid_l2 = grad_sum_mid_l2 / grad_sum_mid_l2.std()
-        grad_sum_mid_l3 = grad_sum_mid_l3 / grad_sum_mid_l3.std()
-        # grad_sum_mid_l4 = grad_sum_mid_l4 / grad_sum_mid_l4.std()
-
-        # Eq.(6) Enhance the feature contribute to y_t and suppress that contribute to y_o
-        beta = 0.2
-        # grad_sum_new_l1 = grad_sum_mid_l1
-        # grad_sum_new_l2 = grad_sum_mid_l2
-        grad_sum_new_l3 = grad_sum_mid_l3
-        # grad_sum_new_l4 = grad_sum_mid_l4
+#         # return x_adv_ft
 
 
-        g1 = 0
-        x_cle = X_nat.detach()
-        x_adv_ft = x_adv_ft.clone()
-        for epoch in range(self.k):
-            self.model.zero_grad()
-            x_adv_ft.requires_grad_()
-            x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
-            x_adv_norm = norm(x_adv_ft_DI)                                  # [0, 1] to [-1, 1]
-            mid_feature_l1, mid_feature_l2, mid_feature_l3, mid_feature_l4 = self.model.multi_layer_features(x_adv_norm)
+# #FT
 
-            # loss1 = FIAloss(grad_sum_l1, mid_feature_l1)
-            # loss2 = FIAloss(grad_sum_l2, mid_feature_l2)
-            loss3 = FIAloss(grad_sum_new_l3, mid_feature_l3)
-            # loss4 = FIAloss(grad_sum_l4, mid_feature_l4)
+#         # calculate the feature importance from an AE crafted by a baseline attack
+#         # grad_sum_mid_l1 = torch.zeros(temp_x_l1.shape).to(device)
+#         # grad_sum_mid_l2 = torch.zeros(temp_x_l2.shape).to(device)
+#         grad_sum_mid_l3 = torch.zeros(temp_x_l3.shape).to(device)
+#         # grad_sum_mid_l4 = torch.zeros(temp_x_l4.shape).to(device)
+#         for i in range(self.mask_num):
+#             self.model.zero_grad()
+#             img_temp_i = norm(x_adv_ft).clone()
+#             mask = torch.tensor(np.random.binomial(1, self.prob, size=(batch_size, 3, image_size, image_size))).to(
+#                 device)
+#             img_temp_i = img_temp_i * mask
+#             logits, x_l1, x_l2, x_l3, x_l4 = self.model.features_grad_multi_layers(img_temp_i)
+#             # gather logit_t
+#             logit_label = logits.gather(1, labels_tar.unsqueeze(1)).squeeze(1)
+#             logit_label.sum().backward()
 
-            # loss = (loss1 + loss2 + loss3 + loss4) / 4
-            loss = loss3
-            loss.backward()
-            grad_c = x_adv_ft.grad
-            grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
-            g1 = self.mu * g1 + grad_c                                                                   # MI
+#             # grad_sum_mid_l1 += x_l1.grad
+#             # grad_sum_mid_l2 += x_l2.grad
+#             grad_sum_mid_l3 += x_l3.grad
+#             # grad_sum_mid_l4 += x_l4.grad
 
-            x_adv_ft = x_adv_ft + self.alpha * g1.sign()
-            with torch.no_grad():
-                eta = torch.clamp(x_adv_ft - x_cle, min=-self.epsilon, max=self.epsilon)
-                # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
-            x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
+#         # normalize the aggregated gradient. You can change it to average
+#         # grad_sum_mid_l1 = grad_sum_mid_l1 / grad_sum_mid_l1.std()
+#         # grad_sum_mid_l2 = grad_sum_mid_l2 / grad_sum_mid_l2.std()
+#         grad_sum_mid_l3 = grad_sum_mid_l3 / grad_sum_mid_l3.std()
+#         # grad_sum_mid_l4 = grad_sum_mid_l4 / grad_sum_mid_l4.std()
+
+#         # Eq.(6) Enhance the feature contribute to y_t and suppress that contribute to y_o
+#         beta = 0.2
+#         # grad_sum_new_l1 = grad_sum_mid_l1
+#         # grad_sum_new_l2 = grad_sum_mid_l2
+#         grad_sum_new_l3 = grad_sum_mid_l3
+#         # grad_sum_new_l4 = grad_sum_mid_l4
+
+
+#         g1 = 0
+#         x_cle = X_nat.detach()
+#         x_adv_ft = x_adv_ft.clone()
+#         for epoch in range(self.k):
+#             self.model.zero_grad()
+#             x_adv_ft.requires_grad_()
+#             x_adv_ft_DI = DI_keepresolution(x_adv_ft)                       # DI
+#             x_adv_norm = norm(x_adv_ft_DI)                                  # [0, 1] to [-1, 1]
+#             mid_feature_l1, mid_feature_l2, mid_feature_l3, mid_feature_l4 = self.model.multi_layer_features(x_adv_norm)
+
+#             # loss1 = FIAloss(grad_sum_l1, mid_feature_l1)
+#             # loss2 = FIAloss(grad_sum_l2, mid_feature_l2)
+#             loss3 = FIAloss(grad_sum_new_l3, mid_feature_l3)
+#             # loss4 = FIAloss(grad_sum_l4, mid_feature_l4)
+
+#             # loss = (loss1 + loss2 + loss3 + loss4) / 4
+#             loss = loss3
+#             loss.backward()
+#             grad_c = x_adv_ft.grad
+#             grad_c = F.conv2d(grad_c, gaussian_kernel, bias=None, stride=1, padding=(2, 2), groups=3)  # TI
+#             g1 = self.mu * g1 + grad_c                                                                   # MI
+
+#             x_adv_ft = x_adv_ft + self.alpha * g1.sign()
+#             with torch.no_grad():
+#                 eta = torch.clamp(x_adv_ft - x_cle, min=-self.epsilon, max=self.epsilon)
+#                 # X_ft = torch.clamp(x_cle + eta, min=0, max=1).detach_()
+#             x_adv_ft = torch.clamp(x_cle + eta, min=0, max=1)
 
 
 
