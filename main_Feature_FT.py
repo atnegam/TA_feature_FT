@@ -20,11 +20,11 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # load model # load pretrained model，
 # modify it to the dir of the pretrained model in your computer
 checkpt_dir = '../chk/'
-model_2 = inception_v3(weights=None, transform_input=True)
-model_2.load_state_dict(torch.load(checkpt_dir + 'inception_v3_google-0cc3c7bd.pth'))
-model_2.eval()
+# model_2 = inception_v3(weights=None, transform_input=True)
+# model_2.load_state_dict(torch.load(checkpt_dir + 'inception_v3_google-0cc3c7bd.pth'))
+# model_2.eval()
 # model_2 = models.inception_v3(weights=Inception_V3_Weights.DEFAULT, transform_input=True).eval()
-# model_2 = models.resnet50(weights=ResNet50_Weights.IMAGENET1K_V1).eval()
+model_2 = models.resnet50(weights=ResNet50_Weights.IMAGENET1K_V1).eval()
 model_3 = models.densenet121(weights=DenseNet121_Weights.IMAGENET1K_V1).eval()
 model_4 = models.vgg16_bn(weights=VGG16_BN_Weights.IMAGENET1K_V1).eval()
 
@@ -55,11 +55,11 @@ trn = transforms.Compose([transforms.ToTensor(), ])
 # trn = transforms.Compose([transforms.Resize(224), transforms.ToTensor(), ])
 image_id_list, label_ori_list, label_tar_list = load_ground_truth('./dataset/images.csv')
 
-# model = inception_v3(weights=None, transform_input=True)
-# model.load_state_dict(torch.load(checkpt_dir + 'inception_v3_google-0cc3c7bd.pth'))
+model = inception_v3(weights=None, transform_input=True)
+model.load_state_dict(torch.load(checkpt_dir + 'inception_v3_google-0cc3c7bd.pth'))
 
-model = ResNet50(num_classes=1000)  # Hui Zeng
-model.load_state_dict(torch.load(checkpt_dir + 'resnet50-0676ba61.pth'))
+# model = ResNet50(num_classes=1000)  # Hui Zeng
+# model.load_state_dict(torch.load(checkpt_dir + 'resnet50-0676ba61.pth'))
 
 # temp = torch.load(checkpt_dir + 'densenet121-a639ec97.pth')      # Densenet
 # model = densenet121(weights=temp).eval()
