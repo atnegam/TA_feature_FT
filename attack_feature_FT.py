@@ -147,7 +147,7 @@ class FeatureFT(object):
         g2 = 0
         x_cle = X_nat.detach()
         x_adv_ft = X_nat.clone().requires_grad_()
-        for epoch in range(self.kt//2):
+        for epoch in range(self.kt//4):
             self.model.zero_grad()
             x_adv_ft.requires_grad_()
             x_adv_ft_DI = DI(x_adv_ft)                       # DI
