@@ -53,7 +53,7 @@ class FeatureFT(object):
         X_adv_tar = X_nat
         for epcho in range(3):
             X_adv_tar = self.target_pb(X_nat=X_nat, X_adv=X_adv_tar, tar=labels_tar, ori=labels_ori, bs=batch_size, ims=image_size, k2 = 100)
-            X_adv_tar = self.untarget_pb(X_nat=X_nat, X_adv=X_adv_tar, tar=labels_tar, ori=labels_ori, bs=batch_size, ims=image_size, k1 = 2)
+            X_adv_tar = self.untarget_pb(X_nat=X_nat, X_adv=X_adv_tar, tar=labels_tar, ori=labels_ori, bs=batch_size, ims=image_size, k1 = 5)
 
         return X_adv_tar
 
